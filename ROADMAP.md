@@ -27,6 +27,15 @@ Mejoras planeadas para el proyecto. Ordenadas por prioridad e impacto.
 - Health check del daemon antes de cada tool call
 - Feedback visual en Chainlit durante tool calls largas (`research comprehensive`)
 
+### Health checks y resiliencia del daemon
+**Estado:** Inexistente — el agente asume que wigolo siempre responde
+**Problema:** Si el daemon se cae, todas las tools fallan sin que el launcher lo detecte. El usuario solo ve errores genéricos.
+**Mejoras:**
+- Health check proactivo antes de cada tool call (`GET /health`)
+- Reintentos automáticos con backoff exponencial (3 intentos, 1s/2s/4s)
+- Notificación visual en Chainlit cuando el daemon no responde
+- `start.py`: monitoreo del proceso wigolo y reinicio automático si muere
+
 ### Autenticación ligera
 **Estado:** Sin auth — cualquiera en localhost:8000 puede usar el agente
 **Mejoras:**
@@ -36,11 +45,31 @@ Mejoras planeadas para el proyecto. Ordenadas por prioridad e impacto.
 ### Customización de herramientas
 **Estado:** 8 herramientas wigolo expuestas (de 10 disponibles)
 **Completado:** ✅ `rastrear_sitio` (crawl), `extraer_datos` (extract), `comparar_contenido` (diff)
-**Pendiente:** `recolectar_datos` (agent), `monitorear_cambios` (watch)
+**Pendiente:**
+- `recolectar_datos` (agent): Agente autónomo de recolección multi-URL. Riesgo: "agente dentro del agente" puede confundir al LLM. Se expondrá como `recolectar_datos` (no "agent") con docstring restrictivo y modo `stream` para feedback en tiempo real.
+- `monitorear_cambios` (watch): Job-based change monitoring. Riesgo: patrón incompatible con request-response. Se implementará como herramienta CLI independiente (`python watch.py --url ...`), no como tool del agente.
 **Mejoras:**
 - UI para habilitar/deshabilitar herramientas por sesión
 - Herramientas custom via archivo de configuración (YAML/TOML)
 
+
+### Despliegue Docker
+**Estado:** Solo local con Python + Node
+**Prioridad:** Alta — necesario para adopción y para competir con alternativas SaaS
+**Plan:**
+- Dockerfile multi-stage: Python app + dependencias
+- docker-compose con todos los servicios (Ollama, wigolo, Chainlit)
+- Health checks y reinicio automático por contenedor
+- Alternativa: `wigolo` + `ollama` como servicios externos (conexión vía red Docker)
+
+### API headless
+**Estado:** Solo interfaz Chainlit
+**Prioridad:** Alta — permitiría integraciones y uso programático
+**Plan:**
+- Endpoint REST alongside Chainlit (`/api/query`)
+- Modo CLI: `python main.py --query "busca X"`
+- Webhook para recibir preguntas y devolver respuestas asíncronas
+- Misma lógica del agente, distintos canales de entrada/salida
 ---
 
 ## Mediano plazo
@@ -75,20 +104,6 @@ Mejoras planeadas para el proyecto. Ordenadas por prioridad e impacto.
 - Arquitectura multi-agente: researcher, writer, reviewer, fact-checker
 - Orquestación con LangGraph sub-graphs
 - Cada agente con su propio conjunto de herramientas
-
-### Despliegue Docker
-**Estado:** Solo local con Python + Node
-**Mejoras:**
-- Dockerfile multi-stage: Python app + wigolo + Ollama (opcional)
-- docker-compose con todos los servicios
-- Health checks y reinicio automático
-
-### Modo headless / API
-**Estado:** Solo interfaz Chainlit
-**Mejoras:**
-- API REST alongside Chainlit para integraciones
-- Modo CLI: `python main.py --query "busca X"`
-- Webhook para recibir preguntas y devolver respuestas
 
 ---
 
