@@ -155,6 +155,28 @@ Descubrimiento de contenido relacionado por fusión híbrida (keyword + embeddin
 
 **Ejemplo:** *"Encuentra páginas similares a docs.python.org/3/"*
 
+### `rastrear_sitio`
+Explora un sitio web completo desde una URL semilla. Control de profundidad, páginas máximas y filtros por patrón glob.
+
+**Estrategias:**
+- `bfs` (anchura, default), `dfs` (profundidad), `sitemap` (sitemap.xml), `map` (solo URLs)
+
+**Ejemplo:** *"Rastrea docs.python.org/3/library/ con profundidad 2 y máximo 10 páginas"*
+
+---
+
+### `extraer_datos`
+Extrae datos estructurados (tablas, listas, precios, metadatos) de una página web. Modo `auto` detecta la estructura automáticamente; modo `css` permite selectores manuales.
+
+**Ejemplo:** *"Extrae todas las funciones de docs.python.org/3/library/functions.html"*
+
+---
+
+### `comparar_contenido`
+Compara dos páginas web y detecta diferencias a nivel de línea, palabra o sección. Ideal para seguir cambios en documentación, changelogs o versiones de un mismo recurso.
+
+**Ejemplo:** *"Compara las release notes de Django 5.0 y 5.1"*
+
 ---
 
 ## Instalación
@@ -220,7 +242,7 @@ Abrí `http://localhost:8000`. **Ctrl+C** detiene todo limpiamente.
 
 ```
 localmind/
-├── main.py                  # Agente principal (300 líneas)
+├── main.py                  # Agente principal (~400 líneas, 8 herramientas)
 ├── start.py                 # Launcher multi-servicio
 ├── requirements.txt         # 7 dependencias
 ├── pyproject.toml           # Config pytest + proyecto
@@ -230,7 +252,7 @@ localmind/
 │   └── config.toml          # UI: nombre, tema, CoT
 ├── tests/
 │   ├── conftest.py           # Fixtures y mock de wigolo
-│   ├── unit/                 # 47 tests (formatter, tools, launcher)
+│   ├── unit/                 # 62 tests (formatter, tools, launcher)
 │   ├── integration/          # Daemon, checkpointer, agente
 │   └── e2e/                  # Flujos de chat, edge cases
 ├── ROADMAP.md               # Plan de mejoras y deuda técnica
@@ -244,7 +266,7 @@ localmind/
 
 ```powershell
 # Unitarios (sin servicios externos)
-pytest tests/unit/ -v               # 47 tests
+pytest tests/unit/ -v               # 62 tests
 
 # Integración (requiere wigolo serve)
 pytest tests/integration/ -v

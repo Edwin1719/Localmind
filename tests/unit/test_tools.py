@@ -136,6 +136,128 @@ class TestEncontrarSimilarParams:
         assert len(result["results"]) > 0
 
 
+class TestRastrearSitioParams:
+    """Test rastrear_sitio parameter handling."""
+
+    def test_basic_crawl(self):
+        """Basic crawl with just a URL."""
+        client = MockWigoloClient()
+        result = client.crawl(url="https://example.com/docs/")
+        assert len(result["pages"]) == 2
+        assert result["total_pages"] == 2
+        assert "https://example.com/docs/page1" in result["urls"]
+
+    def test_crawl_strategy_map(self):
+        """strategy='map' returns urls without page content."""
+        client = MockWigoloClient()
+        result = client.crawl(url="https://example.com/", strategy="map")
+        assert len(client.calls) == 1
+        assert client.calls[0]["tool"] == "crawl"
+
+    def test_max_pages_respected(self):
+        """max_pages parameter is passed correctly."""
+        client = MockWigoloClient()
+        result = client.crawl(url="https://example.com/", max_pages=5)
+        assert len(result["pages"]) == 2  # mock returns 2 regardless
+
+    def test_include_patterns(self):
+        """include_patterns filter is passed as a list."""
+        client = MockWigoloClient()
+        result = client.crawl(
+            url="https://example.com/",
+            include_patterns=["/docs/*", "/api/*"],
+        )
+        assert len(client.calls) == 1
+        assert client.calls[0]["params"]["include_patterns"] == ["/docs/*", "/api/*"]
+
+
+class TestExtraerDatosParams:
+    """Test extraer_datos parameter handling."""
+
+    def test_auto_extraction(self):
+        """Auto mode detects structure automatically."""
+        client = MockWigoloClient()
+        result = client.extract(url="https://example.com/data")
+        assert len(result["items"]) == 2
+        assert result["mode"] == "auto"
+        assert "name" in result["items"][0]
+
+    def test_css_selector_mode(self):
+        """CSS mode with a specific selector."""
+        client = MockWigoloClient()
+        result = client.extract(
+            url="https://example.com/",
+            mode="css",
+            css_selector="table.releases",
+        )
+        assert len(client.calls) == 1
+        assert client.calls[0]["params"]["css_selector"] == "table.releases"
+
+    def test_multiple_extraction(self):
+        """multiple=True extracts all matches as array."""
+        client = MockWigoloClient()
+        result = client.extract(
+            url="https://example.com/",
+            mode="css",
+            css_selector="a[href]",
+            multiple=True,
+        )
+        assert result["count"] == 2
+
+    def test_single_extraction_default(self):
+        """Default multiple=False extracts first match only."""
+        client = MockWigoloClient()
+        result = client.extract(url="https://example.com/")
+        assert len(client.calls) == 1
+        assert client.calls[0]["tool"] == "extract"
+
+
+class TestCompararContenidoParams:
+    """Test comparar_contenido parameter handling."""
+
+    def test_basic_diff(self):
+        """Basic diff between two URLs."""
+        client = MockWigoloClient()
+        result = client.diff(
+            old={"url": "https://example.com/v1"},
+            new={"url": "https://example.com/v2"},
+        )
+        assert len(result["hunks"]) == 2
+        assert result["hunks"][0]["type"] == "modified"
+
+    def test_diff_word_granularity(self):
+        """Diff with word-level granularity."""
+        client = MockWigoloClient()
+        result = client.diff(
+            old={"url": "https://example.com/v1"},
+            new={"url": "https://example.com/v2"},
+            granularity="word",
+        )
+        assert result["granularity"] == "word"
+
+    def test_diff_line_granularity(self):
+        """Diff with line-level granularity."""
+        client = MockWigoloClient()
+        result = client.diff(
+            old={"url": "https://example.com/v1"},
+            new={"url": "https://example.com/v2"},
+            granularity="line",
+        )
+        assert len(client.calls) == 1
+        assert "summary" in result
+
+    def test_diff_call_registered(self):
+        """Diff call is tracked correctly."""
+        client = MockWigoloClient()
+        client.diff(
+            old={"url": "https://a.com"},
+            new={"url": "https://b.com"},
+            granularity="section",
+        )
+        assert client.calls[0]["tool"] == "diff"
+        assert client.calls[0]["params"]["granularity"] == "section"
+
+
 # ── Error handling ──────────────────────────────────────────────────
 
 class TestToolErrorHandling:
@@ -164,3 +286,24 @@ class TestToolErrorHandling:
         client = MockWigoloClient(fail_mode="cache")
         with pytest.raises(ConnectionError, match="mock cache failure"):
             client.cache(query="test")
+
+    def test_crawl_connection_error(self):
+        """Crawl should handle connection errors gracefully."""
+        client = MockWigoloClient(fail_mode="crawl")
+        with pytest.raises(ConnectionError, match="mock crawl failure"):
+            client.crawl(url="https://example.com/")
+
+    def test_extract_connection_error(self):
+        """Extract should handle connection errors gracefully."""
+        client = MockWigoloClient(fail_mode="extract")
+        with pytest.raises(ConnectionError, match="mock extract failure"):
+            client.extract(url="https://example.com/")
+
+    def test_diff_connection_error(self):
+        """Diff should handle connection errors gracefully."""
+        client = MockWigoloClient(fail_mode="diff")
+        with pytest.raises(ConnectionError, match="mock diff failure"):
+            client.diff(
+                old={"url": "https://a.com"},
+                new={"url": "https://b.com"},
+            )

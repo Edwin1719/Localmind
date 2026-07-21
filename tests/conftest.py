@@ -107,6 +107,61 @@ class MockWigoloClient:
             ],
         }
 
+    def crawl(self, **kwargs) -> dict:
+        self.calls.append({"tool": "crawl", "params": kwargs})
+        if self.fail_mode == "crawl":
+            raise ConnectionError("mock crawl failure")
+        return {
+            "pages": [
+                {
+                    "url": "https://example.com/docs/page1",
+                    "title": "Page 1",
+                    "markdown": "# Page 1\n\nContent of page 1.",
+                },
+                {
+                    "url": "https://example.com/docs/page2",
+                    "title": "Page 2",
+                    "markdown": "# Page 2\n\nContent of page 2.",
+                },
+            ],
+            "total_pages": 2,
+            "urls": ["https://example.com/docs/page1", "https://example.com/docs/page2"],
+        }
+
+    def extract(self, **kwargs) -> dict:
+        self.calls.append({"tool": "extract", "params": kwargs})
+        if self.fail_mode == "extract":
+            raise ConnectionError("mock extract failure")
+        return {
+            "items": [
+                {"name": "Item 1", "value": "Value 1"},
+                {"name": "Item 2", "value": "Value 2"},
+            ],
+            "count": 2,
+            "mode": kwargs.get("mode", "auto"),
+        }
+
+    def diff(self, **kwargs) -> dict:
+        self.calls.append({"tool": "diff", "params": kwargs})
+        if self.fail_mode == "diff":
+            raise ConnectionError("mock diff failure")
+        return {
+            "hunks": [
+                {
+                    "type": "modified",
+                    "old_text": "Python 3.12 requires Django 5.0",
+                    "new_text": "Python 3.13 requires Django 5.1",
+                },
+                {
+                    "type": "added",
+                    "old_text": None,
+                    "new_text": "New async ORM support added.",
+                },
+            ],
+            "summary": "2 changes: 1 modified, 1 added",
+            "granularity": kwargs.get("granularity", "section"),
+        }
+
     def close(self):
         pass
 

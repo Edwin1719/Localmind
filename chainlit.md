@@ -11,6 +11,9 @@ Impulsado por **wigolo** + **Ollama** + **LangGraph**. Todo corre en tu máquina
 | 🧠 **Investigación profunda** | Descompone preguntas complejas, busca en múltiples fuentes, sintetiza con citas |
 | 🧲 **Contenido similar** | Encuentra páginas relacionadas a una URL o concepto |
 | 💾 **Cache local** | Todo lo que buscas se guarda — las reconsultas son instantáneas |
+| 🕸️ **Rastrear sitios** | Explora un sitio completo desde una URL semilla con profundidad controlable |
+| 📊 **Extraer datos** | Datos estructurados (tablas, listas) con detección automática o CSS |
+| 🔍 **Comparar contenido** | Detecta diferencias entre dos páginas (línea, palabra o sección) |
 
 ## Consejos
 

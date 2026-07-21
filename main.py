@@ -213,6 +213,113 @@ def encontrar_similar(
         return ResponseFormatter.error(str(e))
 
 
+
+@tool
+def rastrear_sitio(
+    url: str,
+    max_pages: int = 10,
+    strategy: str = "bfs",
+    max_depth: int = 2,
+    include_patterns: Optional[str] = None,
+) -> Dict:
+    """Explora un sitio web completo desde una URL semilla y extrae su contenido.
+
+    Usa esta herramienta cuando necesites mapear la estructura de un sitio,
+    extraer todas sus paginas, o recolectar contenido de un dominio entero.
+    Para leer una sola pagina, usa leer_pagina_web.
+
+    Args:
+        url: URL semilla desde donde empezar el rastreo.
+        max_pages: Maximo de paginas a visitar (default 10, max 50).
+        strategy: Estrategia de rastreo: 'bfs' (anchura), 'dfs' (profundidad),
+                  'sitemap' (usar sitemap.xml), 'map' (solo URLs, sin contenido).
+        max_depth: Profundidad maxima desde la URL semilla (default 2).
+        include_patterns: Patrones glob para filtrar URLs, separados por coma
+                          (ej: '/docs/*,*/api/*').
+    """
+    try:
+        params = {
+            "url": url,
+            "max_pages": min(max_pages, 50),
+            "strategy": strategy,
+            "max_depth": max_depth,
+        }
+        if include_patterns:
+            params["include_patterns"] = [
+                p.strip() for p in include_patterns.split(",")
+            ]
+
+        result = _wigolo.crawl(**params)
+        return ResponseFormatter.success(result, f"Sitio rastreado: {url}")
+    except Exception as e:
+        logger.error(f"Error en rastreo: {e}")
+        return ResponseFormatter.error(str(e))
+
+
+@tool
+def extraer_datos(
+    url: str,
+    mode: str = "auto",
+    css_selector: Optional[str] = None,
+    multiple: bool = False,
+) -> Dict:
+    """Extrae datos estructurados (tablas, listas, precios, metadatos) de una pagina web.
+
+    Usa esta herramienta cuando necesites recolectar datos especificos de una pagina,
+    no entender su contenido general. Para leer y comprender contenido, usa leer_pagina_web.
+
+    Args:
+        url: La URL completa de la pagina a extraer.
+        mode: Modo de extraccion: 'auto' (deteccion automatica de tablas/listas),
+              'css' (selector CSS manual).
+        css_selector: Selector CSS para extraer elementos especificos (solo con mode='css').
+                      Ej: 'table.releases', 'a[href]', '.price'.
+        multiple: Si es True, extrae todas las coincidencias como array.
+                  Si es False, extrae solo la primera.
+    """
+    try:
+        params = {
+            "url": url,
+            "mode": mode,
+            "multiple": multiple,
+        }
+        if css_selector:
+            params["css_selector"] = css_selector
+
+        result = _wigolo.extract(**params)
+        return ResponseFormatter.success(result, f"Datos extraidos: {url}")
+    except Exception as e:
+        logger.error(f"Error en extraccion: {e}")
+        return ResponseFormatter.error(str(e))
+
+
+@tool
+def comparar_contenido(
+    url_a: str,
+    url_b: str,
+    granularidad: str = "section",
+) -> Dict:
+    """Compara el contenido de dos paginas web y muestra las diferencias.
+
+    Usa esta herramienta cuando necesites saber que cambio entre dos versiones
+    de documentacion, articulos, changelogs, o cualquier par de URLs.
+
+    Args:
+        url_a: URL de la primera pagina (version anterior o base).
+        url_b: URL de la segunda pagina (version nueva o a comparar).
+        granularidad: Nivel de detalle del diff: 'line', 'word', o 'section' (default).
+    """
+    try:
+        result = _wigolo.diff(
+            old={"url": url_a},
+            new={"url": url_b},
+            granularity=granularidad,
+        )
+        return ResponseFormatter.success(result, f"Comparacion completada")
+    except Exception as e:
+        logger.error(f"Error en comparacion: {e}")
+        return ResponseFormatter.error(str(e))
+
 # ── Agent assembly ──────────────────────────────────────────────────
 
 tools = [
@@ -221,6 +328,9 @@ tools = [
     investigar_a_fondo,
     buscar_en_cache,
     encontrar_similar,
+    rastrear_sitio,
+    extraer_datos,
+    comparar_contenido,
 ]
 
 model = ChatOllama(model=OLLAMA_MODEL)
@@ -232,8 +342,14 @@ Tienes acceso a herramientas avanzadas de inteligencia web que corren 100% local
 - leer_pagina_web: Lee cualquier URL con navegador real para SPAs y JS.
 - investigar_a_fondo: Pipeline de investigación multi-paso que descompone preguntas,
   busca fuentes en paralelo y sintetiza reportes con citas.
-- buscar_en_cache: Tu memoria local — consultas previas son instantáneas y sin red.
+- buscar_en_cache: Tu memoria local — consultas previas son instantaneas y sin red.
 - encontrar_similar: Descubre contenido relacionado a una URL o concepto.
+- rastrear_sitio: Explora un sitio web completo desde una URL semilla. Extrae
+  multiples paginas de documentacion, blogs, o sitios enteros con profundidad controlable.
+- extraer_datos: Extrae datos estructurados (tablas, listas, precios) de una pagina.
+  Usa mode='auto' para deteccion automatica, o CSS para elementos especificos.
+- comparar_contenido: Compara dos paginas web y detecta diferencias. Util para
+  seguir cambios en documentacion, changelogs, o versiones de un mismo recurso.
 
 Reglas:
 1. SIEMPRE usa las herramientas cuando necesites información de la web.

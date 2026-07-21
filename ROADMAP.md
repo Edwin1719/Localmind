@@ -34,11 +34,12 @@ Mejoras planeadas para el proyecto. Ordenadas por prioridad e impacto.
 - OAuth2 minimal (GitHub/Google) para entornos compartidos
 
 ### Customización de herramientas
-**Estado:** 5 herramientas wigolo predefinidas
+**Estado:** 8 herramientas wigolo expuestas (de 10 disponibles)
+**Completado:** ✅ `rastrear_sitio` (crawl), `extraer_datos` (extract), `comparar_contenido` (diff)
+**Pendiente:** `recolectar_datos` (agent), `monitorear_cambios` (watch)
 **Mejoras:**
 - UI para habilitar/deshabilitar herramientas por sesión
 - Herramientas custom via archivo de configuración (YAML/TOML)
-- Ejemplo: agregar `crawl`, `extract`, `diff` de wigolo expuestas como tools
 
 ---
 
@@ -95,7 +96,7 @@ Mejoras planeadas para el proyecto. Ordenadas por prioridad e impacto.
 
 ### Deuda actual
 1. **Thread fijo** — `THREAD_ID = "max-conversation"` es temporal. Migrar a multi-sesión real.
-2. **Sin tests** — Agregar tests unitarios para herramientas y tests de integración para el flujo completo.
+2. **Cobertura de herramientas** — 8 de 10 herramientas de wigolo expuestas. Pendientes: `recolectar_datos` (agent) y `monitorear_cambios` (watch).
 3. **Configuración dispersa** — Centralizar toda la config (modelo, puertos, timeouts) en un solo archivo YAML/TOML.
 4. **Error handling en el launcher** — `start.py` no reintenta si wigolo falla después de iniciar.
 
