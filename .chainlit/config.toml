@@ -1,0 +1,39 @@
+[project]
+enable_telemetry = false
+user_env = []
+session_timeout = 3600
+user_session_timeout = 1296000
+cache = false
+allow_origins = ["*"]
+
+[features]
+unsafe_allow_html = false
+latex = false
+user_message_autoscroll = true
+auto_tag_thread = true
+edit_message = true
+
+[features.spontaneous_file_upload]
+    enabled = true
+    accept = ["*/*"]
+    max_files = 20
+    max_size_mb = 500
+
+[features.audio]
+    sample_rate = 24000
+
+[features.mcp.sse]
+    enabled = true
+
+[features.mcp.stdio]
+    enabled = true
+    allowed_executables = ["npx", "uvx"]
+
+[UI]
+name = "Max"
+description = "Asistente de investigación local impulsado por wigolo + Ollama"
+cot = "full"
+alert_style = "classic"
+
+[meta]
+generated_by = "2.6.0"

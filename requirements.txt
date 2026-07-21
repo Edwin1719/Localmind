@@ -1,0 +1,8 @@
+chainlit==2.6.0
+langchain==1.0.2
+langchain-ollama==1.0.0
+langgraph==1.0.1
+langgraph-checkpoint-sqlite==2.0.11
+loguru==0.7.3
+wigolo==0.2.1
+python-dotenv==1.1.0

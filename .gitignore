@@ -1,0 +1,32 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+
+# Chainlit
+.chainlit/translations/
+*.db
+*.db-wal
+*.db-shm
+
+# wigolo
+~/.wigolo/
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Environment
+.env
+
+# OS
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
